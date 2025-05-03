@@ -25,13 +25,27 @@ public class MethodParameterCountAnalyzerTests
         var code = @"
 class C
 {
-    void M(int a, int b, int c) { }
+    void M(int a, int b, string c) { }
 }";
         await VerifyAnalyzerAsync(code);
     }
 
     [Fact]
-    public async Task Method_WithFourParameters_TriggersDiagnostic()
+    public async Task Method_WithThreeParametersOfSameType_TriggersDiagnostic()
+    {
+        var code = @"
+class C
+{
+    void M(int a, System.Int32 b, int c) { }
+}";
+        var expected = new DiagnosticResult("EA0001", DiagnosticSeverity.Warning)
+            .WithSpan(4, 10, 4, 11)
+            .WithArguments("M");
+        await VerifyAnalyzerAsync(code, expected);
+    }
+
+    [Fact]
+    public async Task Method_WithFourParametersOfSameType_TriggersDiagnostic()
     {
         var code = @"
 class C
@@ -56,12 +70,12 @@ class C
     }
 
     [Fact]
-    public async Task StaticMethod_WithFourParameters_TriggersDiagnostic()
+    public async Task StaticMethod_WithThreeParametersOfSameType_TriggersDiagnostic()
     {
         var code = @"
 class C
 {
-    static void M(int a, int b, int c, int d) { }
+    static void M(int a, int b, int c) { }
 }";
         var expected = new DiagnosticResult("EA0001", DiagnosticSeverity.Warning)
             .WithSpan(4, 17, 4, 18)
@@ -70,27 +84,40 @@ class C
     }
 
     [Fact]
-    public async Task Constructor_WithFourParameters_NoDiagnostic()
+    public async Task StaticMethod_WithDifferentTypes_NoDiagnostic()
     {
         var code = @"
 class C
 {
-    public C(int a, int b, int c, int d) { }
+    static void M(int a, string b, double c) { }
 }";
         await VerifyAnalyzerAsync(code);
     }
 
     [Fact]
-    public async Task LocalFunction_WithFourParameters_NoDiagnostic()
+    public async Task Constructor_WithThreeParametersOfSameType_NoDiagnostic()
+    {
+        var code = @"
+class C
+{
+    public C(int a, int b, int c) { }
+}";
+        // Constructors are not analyzed
+        await VerifyAnalyzerAsync(code);
+    }
+
+    [Fact]
+    public async Task LocalFunction_WithThreeParametersOfSameType_NoDiagnostic()
     {
         var code = @"
 class C
 {
     void M()
     {
-        void Local(int a, int b, int c, int d) { }
+        void Local(int a, int b, int c) { }
     }
 }";
+        // Local functions are not analyzed
         await VerifyAnalyzerAsync(code);
     }
 }

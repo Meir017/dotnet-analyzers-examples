@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace ExampleAnalyzer
 {
@@ -26,20 +28,38 @@ namespace ExampleAnalyzer
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
-            context.RegisterSyntaxNodeAction(AnalyzeMethod, SyntaxKind.MethodDeclaration);
+            context.RegisterOperationAction(AnalyzeMethod, OperationKind.MethodBodyOperation);
         }
 
-        private static void AnalyzeMethod(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeMethod(OperationAnalysisContext context)
         {
-            var methodDecl = (MethodDeclarationSyntax)context.Node;
-            if (methodDecl.ParameterList.Parameters.Count > 3)
+            var method = context.Operation.SemanticModel.GetDeclaredSymbol(context.Operation.Syntax) as IMethodSymbol;
+            if (method == null)
+                return;
+
+            // Count parameter types
+            var typeCounts = new Dictionary<ITypeSymbol, int>(SymbolEqualityComparer.Default);
+            foreach (var param in method.Parameters)
             {
-                var diagnostic = Diagnostic.Create(
-                    Rule,
-                    methodDecl.Identifier.GetLocation(),
-                    methodDecl.Identifier.Text
-                );
-                context.ReportDiagnostic(diagnostic);
+                if (param.Type == null)
+                    continue;
+                if (!typeCounts.ContainsKey(param.Type))
+                    typeCounts[param.Type] = 0;
+                typeCounts[param.Type]++;
+            }
+
+            foreach (var kvp in typeCounts)
+            {
+                if (kvp.Value >= 3)
+                {
+                    var diagnostic = Diagnostic.Create(
+                        Rule,
+                        method.Locations[0],
+                        method.Name
+                    );
+                    context.ReportDiagnostic(diagnostic);
+                    break;
+                }
             }
         }
     }
