@@ -12,7 +12,7 @@ namespace ExampleAnalyzer
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class MethodParameterCountAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             id: "EA0001",
             title: "Method has too many parameters",
             messageFormat: "Method '{0}' has more than 3 parameters",

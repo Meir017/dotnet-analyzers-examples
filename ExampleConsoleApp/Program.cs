@@ -11,7 +11,14 @@ public class Program
         Console.WriteLine(nameof(MethodWithManyParameters));
     }
 
-    public void MethodWithManyParameters(int a, int b, int c, int d, int e)
+    public static void MethodWithManyParameters(int a,
+        int b,
+        string a1,
+        int c,
+        string a2,
+        int d,
+        string a3,
+        int e)
     {
         Console.WriteLine(a + b + c + d + e);
     }
