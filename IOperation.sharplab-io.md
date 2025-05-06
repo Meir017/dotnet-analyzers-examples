@@ -15,13 +15,6 @@ public class TestClass {
     {
         // arrange
         var collection = new List<int> { 1 };
-        
-        var linq = collection
-            .Where(x => x > 5)
-            .Take(10)
-            .Distinct()
-            .Order()
-            .Sum();
 
         // old assertion:
         collection.Count().Should().Be(1);
